@@ -1,48 +1,81 @@
+"""
+Pricing strategies for ticket sales (Strategy Pattern).
+Implements StandardPricing, EarlyBirdPricing, and GroupPricing.
+"""
 
 from abc import ABC, abstractmethod
 
 
 class PricingStrategy(ABC):
-    """
-    Strategy interface: turns a cart's subtotal into its final total.
-    """
-
+    """Abstract base class for pricing strategies."""
+    
     @abstractmethod
     def price(self, subtotal: float, quantity: int) -> float:
-        raise NotImplementedError
+        """
+        Calculate the final price based on the strategy.
+        
+        Args:
+            subtotal: The base price before discounts
+            quantity: Number of tickets
+            
+        Returns:
+            Final price (clamped at 0.0 minimum)
+        """
+        pass
 
 
 class StandardPricing(PricingStrategy):
-    """No discount: the total is just the subtotal."""
-
+    """Standard pricing with no discounts."""
+    
     def price(self, subtotal: float, quantity: int) -> float:
-        # TODO: no discount, return subtotal unchanged.
-        pass
+        """Return subtotal unchanged."""
+        return max(0.0, subtotal)
 
 
 class EarlyBirdPricing(PricingStrategy):
-    """Flat percentage off the subtotal, for shows still far from sold out."""
-
+    """Early bird pricing with percentage discount."""
+    
     def __init__(self, percent: float):
-        # TODO: store `percent`, raising ValueError if it isn't between 0
-        # and 100 (inclusive).
-        pass
-
+        """
+        Initialize early bird pricing.
+        
+        Args:
+            percent: Discount percentage (0-100 inclusive)
+            
+        Raises:
+            ValueError: If percent is not between 0 and 100
+        """
+        if not 0 <= percent <= 100:
+            raise ValueError("Percent must be between 0 and 100")
+        self.percent = percent
+    
     def price(self, subtotal: float, quantity: int) -> float:
-        # TODO: apply the percentage discount to `subtotal`. The result must
-        # never be negative (clamp at 0.0).
-        pass
+        """Apply percentage discount to subtotal."""
+        discount = subtotal * (self.percent / 100.0)
+        final_price = subtotal - discount
+        return max(0.0, final_price)
 
 
 class GroupPricing(PricingStrategy):
-    """Per-ticket discount once a party reaches a minimum size."""
-
+    """Group pricing with per-ticket discount above threshold."""
+    
     def __init__(self, threshold: int, per_ticket_off: float):
-        # TODO: store `threshold` and `per_ticket_off`.
-        pass
-
+        """
+        Initialize group pricing.
+        
+        Args:
+            threshold: Minimum quantity to trigger discount
+            per_ticket_off: Discount amount per ticket
+        """
+        self.threshold = threshold
+        self.per_ticket_off = per_ticket_off
+    
     def price(self, subtotal: float, quantity: int) -> float:
-        # TODO: if `quantity` is below `threshold`, return subtotal
-        # unchanged. Otherwise subtract `per_ticket_off * quantity` from
-        # `subtotal`, clamped at 0.0.
-        pass
+        """Apply per-ticket discount if quantity meets threshold."""
+        if quantity >= self.threshold:
+            discount = self.per_ticket_off * quantity
+            final_price = subtotal - discount
+        else:
+            final_price = subtotal
+        
+        return max(0.0, final_price)
